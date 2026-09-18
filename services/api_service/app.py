@@ -4,8 +4,21 @@ Deploy on Render (or any ASGI host).
 """
 from __future__ import annotations
 
+import math
+
+def _clean(obj):
+    if isinstance(obj, dict):
+        return {k: _clean(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_clean(v) for v in obj]
+    if isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
+        return None
+    return obj
+
+
 import json
 import sys
+from importlib import util
 from pathlib import Path
 
 import joblib
@@ -16,7 +29,16 @@ from fastapi.middleware.cors import CORSMiddleware
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "shared"))
 
-from sensex_ml.config import MODEL_DIR, REPORT_DIR, ROOT as APP_ROOT
+_CONFIG_PATH = ROOT / "shared" / "sensex_ml" / "config.py"
+_config_spec = util.spec_from_file_location("sensex_ml.config", _CONFIG_PATH)
+if _config_spec is None or _config_spec.loader is None:
+    raise ImportError(f"Unable to load configuration from {_CONFIG_PATH}")
+config = util.module_from_spec(_config_spec)
+sys.modules["sensex_ml.config"] = config
+_config_spec.loader.exec_module(config)
+MODEL_DIR = config.MODEL_DIR
+REPORT_DIR = config.REPORT_DIR
+APP_ROOT = config.ROOT
 
 app = FastAPI(
     title="Sensex Quant Prediction API",
@@ -66,7 +88,7 @@ def health():
 @app.get("/model")
 def model_info():
     m, models, s = _load_artifacts()
-    return {
+    payload = {
         "created_at": m.get("created_at"),
         "mode": m.get("mode"),
         "feature_count": m.get("feature_count"),
@@ -80,6 +102,7 @@ def model_info():
             for k in ["open_return", "close_return"]
         },
     }
+    return _clean(payload)
 
 
 @app.get("/predict")
