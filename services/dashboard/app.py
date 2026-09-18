@@ -43,7 +43,6 @@ st.markdown(
 
     <style>
     :root {
-        /* Palette — institutional, muted, high-contrast */
         --bg-0:      #0b0f17;
         --bg-1:      #101623;
         --bg-2:      #161e2e;
@@ -52,15 +51,15 @@ st.markdown(
         --border:    #1f2a3d;
         --border-hi: #2d3b52;
 
-        --text-0:    #e8edf5;   /* primary */
-        --text-1:    #a8b2c4;   /* secondary */
-        --text-2:    #6a7690;   /* tertiary */
+        --text-0:    #e8edf5;
+        --text-1:    #a8b2c4;
+        --text-2:    #6a7690;
 
-        --amber:     #f0b429;   /* primary accent — Bloomberg-style */
+        --amber:     #f0b429;
         --amber-dim: #b8860b;
-        --teal:      #2dd4bf;   /* secondary accent */
-        --green:     #34d399;   /* long / up */
-        --red:       #f87171;   /* short / down */
+        --teal:      #2dd4bf;
+        --green:     #34d399;
+        --red:       #f87171;
         --blue:      #60a5fa;
         --violet:    #a78bfa;
         --slate:     #64748b;
@@ -69,13 +68,12 @@ st.markdown(
     /* ─── Shell ─── */
     .stApp {
         background: var(--bg-0);
-        background-image:
-            linear-gradient(180deg, #0b0f17 0%, #0a0d15 100%);
+        background-image: linear-gradient(180deg, #0b0f17 0%, #0a0d15 100%);
         color: var(--text-0);
     }
     #MainMenu, footer, header [data-testid="stToolbar"] { visibility: hidden; }
 
-    html, body, [class*="css"], .stApp, .stMarkdown, p, span, div, label, li {
+    html, body, [class*="css"], .stApp, .stMarkdown, p, span, div, label, li, td, th {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         -webkit-font-smoothing: antialiased;
         font-feature-settings: 'tnum' 1, 'cv11' 1;
@@ -87,54 +85,129 @@ st.markdown(
         max-width: 1500px;
     }
 
+    /* Streamlit wraps markdown HTML in <p>; reset inside our blocks */
+    .quant-header p,
+    .quant-header div,
+    .quant-header span,
+    .quant-header table,
+    .quant-header tr,
+    .quant-header td {
+        margin: 0;
+        padding: 0;
+        border: 0;
+        outline: 0;
+        vertical-align: baseline;
+        background: transparent;
+        text-decoration: none;
+    }
+
     /* ─── Top bar / Hero ─── */
     .quant-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1.5rem;
-        padding: 0.9rem 1.2rem;
+        display: block;
+        width: 100%;
+        padding: 1.05rem 1.35rem;
         background: var(--bg-1);
         border: 1px solid var(--border);
+        border-left: 3px solid var(--amber);
         border-radius: 4px;
-        margin-bottom: 1rem;
-        flex-wrap: wrap;
+        margin: 0 0 1rem 0;
+        overflow: hidden;
+        box-sizing: border-box;
     }
-    .quant-header-left {
-        display: flex; align-items: center; gap: 1rem;
+    .quant-header * {
+        box-sizing: border-box;
+        text-decoration: none !important;
+        font-style: normal !important;
     }
+    .qh-table {
+        width: 100%;
+        border-collapse: collapse !important;
+        border-spacing: 0 !important;
+        table-layout: auto;
+    }
+    .qh-table tbody,
+    .qh-table tr {
+        background: transparent !important;
+        border: none !important;
+    }
+    .qh-table td {
+        vertical-align: middle !important;
+        padding: 0 !important;
+        border: none !important;
+        background: transparent !important;
+        line-height: 1 !important;
+    }
+    .qh-logo-cell {
+        width: 1%;
+        white-space: nowrap;
+        padding-right: 16px !important;
+    }
+    .qh-title-cell {
+        white-space: nowrap;
+        padding-right: 24px !important;
+    }
+    .qh-tags-cell {
+        text-align: right;
+        white-space: nowrap;
+        width: 1%;
+    }
+
     .quant-logo {
-        width: 40px; height: 40px;
-        display: grid; place-items: center;
+        display: inline-block;
+        width: 46px;
+        height: 46px;
+        line-height: 46px;
+        text-align: center;
         background: linear-gradient(135deg, var(--amber), var(--amber-dim));
         border-radius: 4px;
         color: #0b0f17;
         font-weight: 800;
         font-size: 1.1rem;
-        letter-spacing: -0.05em;
+        letter-spacing: -0.04em;
+        font-family: 'Inter', sans-serif;
     }
     .quant-title {
-        font-size: 1.15rem;
+        display: block;
+        font-size: 1.55rem;
+        line-height: 1.25 !important;
         font-weight: 700;
         color: var(--text-0);
-        letter-spacing: -0.01em;
+        letter-spacing: -0.02em;
         margin: 0;
+        padding: 0;
     }
     .quant-subtitle {
-        font-size: 0.72rem;
+        display: block;
+        font-size: 0.7rem;
+        line-height: 1.5 !important;
         color: var(--text-2);
-        letter-spacing: 0.06em;
+        letter-spacing: 0.09em;
         text-transform: uppercase;
         font-weight: 500;
-        margin-top: 2px;
+        margin: 4px 0 0 0 !important;
+        padding: 0;
     }
-    .quant-header-right {
-        display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;
+
+    .qh-tags-cell .tag {
+        display: inline-block;
+        margin-left: 6px;
+        vertical-align: middle;
+        line-height: 1 !important;
     }
+
+    @media (max-width: 900px) {
+        .qh-tags-cell { display: none !important; }
+        .qh-title-cell { white-space: normal !important; }
+        .quant-title { font-size: 1.3rem; }
+    }
+
+    /* ─── Tag pills ─── */
     .tag {
-        display: inline-flex; align-items:center; gap:0.35rem;
-        padding: 0.25rem 0.6rem;
-        font-size: 0.68rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.28rem 0.62rem;
+        font-size: 0.66rem;
         font-weight: 600;
         font-family: 'JetBrains Mono', monospace;
         letter-spacing: 0.04em;
@@ -143,6 +216,7 @@ st.markdown(
         color: var(--text-1);
         border: 1px solid var(--border);
         border-radius: 3px;
+        line-height: 1;
     }
     .tag.live {
         color: var(--green);
@@ -180,9 +254,10 @@ st.markdown(
         background: var(--panel);
         border: 1px solid var(--border);
         border-radius: 4px;
-        padding: 0.7rem 0.9rem 0.75rem 0.9rem;
+        padding: 0.75rem 0.9rem 0.8rem 0.9rem;
         overflow: hidden;
         transition: border-color 0.15s ease, background 0.15s ease;
+        min-height: 82px;
     }
     .kpi:hover {
         border-color: var(--border-hi);
@@ -204,24 +279,29 @@ st.markdown(
         font-weight: 600;
         letter-spacing: 0.09em;
         text-transform: uppercase;
+        line-height: 1;
     }
     .kpi-value {
         color: var(--text-0);
         font-family: 'JetBrains Mono', monospace;
         font-size: 1.35rem;
         font-weight: 600;
-        margin-top: 0.35rem;
+        margin-top: 0.4rem;
         letter-spacing: -0.01em;
         font-variant-numeric: tabular-nums;
+        line-height: 1.15;
     }
     .kpi-value.sm { font-size: 1rem; }
     .kpi-delta {
-        display: inline-flex; align-items: center; gap: 0.25rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
         font-family: 'JetBrains Mono', monospace;
         font-size: 0.72rem;
         font-weight: 600;
-        margin-top: 0.3rem;
+        margin-top: 0.35rem;
         font-variant-numeric: tabular-nums;
+        line-height: 1;
     }
     .kpi-delta.up   { color: var(--green); }
     .kpi-delta.down { color: var(--red); }
@@ -287,9 +367,7 @@ st.markdown(
         background: transparent !important;
         border-bottom: 2px solid var(--amber) !important;
     }
-    .stTabs [data-baseweb="tab-highlight"] {
-        background: transparent !important;
-    }
+    .stTabs [data-baseweb="tab-highlight"] { background: transparent !important; }
     .stTabs [data-baseweb="tab-border"] { display: none !important; }
 
     /* ─── Sidebar ─── */
@@ -339,11 +417,12 @@ st.markdown(
 
     /* ─── Mini stat ─── */
     .mini-stat {
-        padding: 0.55rem 0.7rem;
+        padding: 0.6rem 0.75rem;
         background: var(--bg-2);
         border: 1px solid var(--border);
         border-radius: 4px;
         text-align: left;
+        min-height: 58px;
     }
     .mini-stat .k {
         color: var(--text-2);
@@ -351,14 +430,16 @@ st.markdown(
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.08em;
+        line-height: 1;
     }
     .mini-stat .v {
         color: var(--text-0);
         font-family: 'JetBrains Mono', monospace;
         font-size: 0.95rem;
         font-weight: 600;
-        margin-top: 0.25rem;
+        margin-top: 0.3rem;
         font-variant-numeric: tabular-nums;
+        line-height: 1.2;
     }
 
     /* ─── Model block ─── */
@@ -367,8 +448,8 @@ st.markdown(
         border: 1px solid var(--border);
         border-left: 3px solid var(--amber);
         border-radius: 4px;
-        padding: 0.7rem 1rem;
-        margin: 0.7rem 0 0.55rem 0;
+        padding: 0.75rem 1rem;
+        margin: 0.7rem 0 0.6rem 0;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -388,10 +469,11 @@ st.markdown(
         color: var(--amber);
         background: rgba(240,180,41,0.1);
         border: 1px solid rgba(240,180,41,0.3);
-        padding: 0.2rem 0.55rem;
+        padding: 0.25rem 0.6rem;
         border-radius: 3px;
         text-transform: uppercase;
         letter-spacing: 0.05em;
+        line-height: 1;
     }
 
     /* ─── Plotly containers ─── */
@@ -426,7 +508,7 @@ st.markdown(
 
 
 # ═══════════════════════════════════════════════════════════════════
-#  DATA HELPERS  (unchanged logic)
+#  DATA HELPERS
 # ═══════════════════════════════════════════════════════════════════
 @st.cache_data(ttl=300)
 def load_history_local(limit: int = 1500) -> pd.DataFrame:
@@ -546,7 +628,6 @@ def _fmt_num(v, pct=False):
 
 
 def kpi(label, value, delta=None, kind="neutral", accent=None, small=False):
-    """accent: 'up' | 'down' | 'accent' | None"""
     cls = f"kpi {accent}" if accent else "kpi"
     value_cls = "kpi-value sm" if small else "kpi-value"
     delta_html = ""
@@ -582,27 +663,27 @@ def mini_stat(label, value):
 
 
 # ═══════════════════════════════════════════════════════════════════
-#  HEADER
+#  HEADER  —  table-based layout, no flex, no wrap artifacts
 # ═══════════════════════════════════════════════════════════════════
-use_api_placeholder = ""  # populated after sidebar toggle
-
 st.markdown(
     """
-    <div class="quant-header">
-        <div class="quant-header-left">
-            <div class="quant-logo">SQ</div>
-            <div>
-                <div class="quant-title">Sensex Quant Lab</div>
-                <div class="quant-subtitle">Systematic Forecasting · Open &amp; Close · Time-Series CV</div>
-            </div>
-        </div>
-        <div class="quant-header-right">
-            <span class="tag">NSE · SENSEX</span>
-            <span class="tag">1D HORIZON</span>
-            <span class="tag">LOG-RETURN TARGET</span>
-            <span class="tag">TIME-SERIES CV</span>
-        </div>
-    </div>
+<div class="quant-header">
+  <table class="qh-table">
+    <tr>
+      <td class="qh-logo-cell"><div class="quant-logo">SQ</div></td>
+      <td class="qh-title-cell">
+        <div class="quant-title">Sensex Quant Lab</div>
+        <div class="quant-subtitle">Systematic Forecasting &nbsp;·&nbsp; Open &amp; Close &nbsp;·&nbsp; Time-Series CV</div>
+      </td>
+      <td class="qh-tags-cell">
+        <span class="tag">NSE · SENSEX</span>
+        <span class="tag">1D HORIZON</span>
+        <span class="tag">LOG-RETURN TARGET</span>
+        <span class="tag">TIME-SERIES CV</span>
+      </td>
+    </tr>
+  </table>
+</div>
     """,
     unsafe_allow_html=True,
 )
@@ -697,7 +778,7 @@ else:
     with tab_price:
         st.markdown(
             section_hdr("Sensex OHLC + Next-Session Forecast",
-                        f"{len(plot_df)} sessions · log-scale return target"),
+                        f"{len(plot_df)} sessions · log-return target"),
             unsafe_allow_html=True,
         )
 
@@ -786,7 +867,6 @@ else:
             fig.update_yaxes(gridcolor="rgba(45,59,82,0.35)", linecolor="#1f2a3d", row=i, col=1)
         st.plotly_chart(fig, use_container_width=True)
 
-        # Return distribution
         if "Return" in plot_df.columns or "Close" in plot_df.columns:
             rets = plot_df["Return"] if "Return" in plot_df.columns else np.log(plot_df["Close"]).diff()
             fig_h = go.Figure()
@@ -901,7 +981,6 @@ else:
             )
             st.plotly_chart(fig3, use_container_width=True)
 
-            # 3D surface — FIXED colorbar API
             try:
                 pivot = df3.copy()
                 pivot["mom_bin"] = pd.qcut(pivot["mom_20"], 12, duplicates="drop")
