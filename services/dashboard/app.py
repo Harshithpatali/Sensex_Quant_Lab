@@ -32,6 +32,185 @@ REPORT_DIR = ROOT / "artifacts" / "reports"
 MODEL_DIR = ROOT / "artifacts" / "models"
 
 
+# ───────────────────────── global styling ─────────────────────────
+st.markdown(
+    """
+    <style>
+        /* App background */
+        .stApp {
+            background:
+                radial-gradient(1200px 600px at 10% -10%, rgba(124,58,237,0.15), transparent 60%),
+                radial-gradient(1000px 500px at 100% 0%, rgba(6,182,212,0.12), transparent 55%),
+                linear-gradient(180deg, #0a0e17 0%, #0b1120 100%);
+        }
+        #MainMenu, footer {visibility: hidden;}
+
+        .block-container {
+            padding-top: 1.2rem;
+            padding-bottom: 2rem;
+            max-width: 1400px;
+        }
+
+        /* Hero */
+        .sql-hero {
+            position: relative;
+            padding: 1.6rem 2rem;
+            border-radius: 18px;
+            background: linear-gradient(120deg,
+                rgba(30,58,138,0.85) 0%,
+                rgba(124,58,237,0.85) 55%,
+                rgba(219,39,119,0.75) 100%);
+            box-shadow:
+                0 12px 40px rgba(124,58,237,0.28),
+                inset 0 1px 0 rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.08);
+            margin-bottom: 1.2rem;
+            overflow: hidden;
+        }
+        .sql-hero:before {
+            content:"";
+            position:absolute; inset:0;
+            background:
+                radial-gradient(600px 200px at 15% 120%, rgba(0,229,255,0.35), transparent 70%),
+                radial-gradient(500px 200px at 90% -20%, rgba(255,82,82,0.25), transparent 70%);
+            pointer-events:none;
+        }
+        .sql-hero h1 {
+            margin: 0;
+            font-size: 2.05rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: #ffffff;
+            position: relative;
+        }
+        .sql-hero p {
+            margin: 0.35rem 0 0 0;
+            color: rgba(255,255,255,0.85);
+            font-size: 0.95rem;
+            position: relative;
+        }
+        .sql-hero .badges {
+            margin-top: 0.85rem;
+            display:flex; gap:0.5rem; flex-wrap: wrap;
+            position:relative;
+        }
+        .sql-badge {
+            display:inline-block;
+            padding:0.28rem 0.7rem;
+            border-radius:999px;
+            font-size:0.72rem;
+            font-weight:600;
+            letter-spacing:0.05em;
+            text-transform:uppercase;
+            background: rgba(255,255,255,0.12);
+            color: #e0e7ff;
+            border: 1px solid rgba(255,255,255,0.18);
+            backdrop-filter: blur(6px);
+        }
+
+        /* Metric cards */
+        .metric-card {
+            background: linear-gradient(160deg,
+                rgba(30,41,59,0.75) 0%,
+                rgba(15,23,42,0.9) 100%);
+            border: 1px solid rgba(99,102,241,0.22);
+            border-radius: 14px;
+            padding: 0.9rem 1rem;
+            box-shadow:
+                0 6px 24px rgba(0,0,0,0.35),
+                inset 0 1px 0 rgba(255,255,255,0.04);
+            height: 100%;
+            transition: transform 0.15s ease, border-color 0.15s ease;
+        }
+        .metric-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(129,140,248,0.55);
+        }
+        .metric-label {
+            color: #94a3b8;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        .metric-value {
+            color: #f8fafc;
+            font-size: 1.45rem;
+            font-weight: 700;
+            margin-top: 0.35rem;
+            letter-spacing: -0.01em;
+        }
+        .metric-delta {
+            font-size: 0.82rem;
+            font-weight: 600;
+            margin-top: 0.35rem;
+            display: inline-flex;
+            align-items:center;
+            gap: 0.25rem;
+            padding: 0.12rem 0.5rem;
+            border-radius: 6px;
+        }
+        .metric-delta.up      { color:#22c55e; background: rgba(34,197,94,0.12); }
+        .metric-delta.down    { color:#ef4444; background: rgba(239,68,68,0.12); }
+        .metric-delta.neutral { color:#94a3b8; background: rgba(148,163,184,0.12); }
+
+        /* Tabs */
+        .stTabs [data-baseweb="tab-list"] {
+            gap: 0.35rem;
+            background: rgba(15,23,42,0.6);
+            padding: 0.4rem;
+            border-radius: 12px;
+            border: 1px solid rgba(99,102,241,0.2);
+        }
+        .stTabs [data-baseweb="tab"] {
+            height: 40px;
+            border-radius: 9px;
+            padding: 0 1rem;
+            color: #cbd5e1;
+            font-weight: 600;
+            font-size: 0.85rem;
+            background: transparent;
+            border: none;
+        }
+        .stTabs [aria-selected="true"] {
+            background: linear-gradient(135deg,
+                rgba(124,58,237,0.9),
+                rgba(219,39,119,0.85)) !important;
+            color: #ffffff !important;
+            box-shadow: 0 6px 18px rgba(124,58,237,0.35);
+        }
+
+        /* Sidebar */
+        section[data-testid="stSidebar"] {
+            background: linear-gradient(180deg, #0b1120 0%, #0a0e17 100%);
+            border-right: 1px solid rgba(99,102,241,0.15);
+        }
+        section[data-testid="stSidebar"] h2,
+        section[data-testid="stSidebar"] h3 { color:#c7d2fe; }
+
+        /* Section sub-headers */
+        .section-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            margin: 0.2rem 0 0.6rem 0;
+            display:flex;
+            align-items:center;
+            gap:0.5rem;
+        }
+        .section-title .dot {
+            width: 8px; height:8px; border-radius:50%;
+            background: linear-gradient(135deg,#7c3aed,#06b6d4);
+            box-shadow: 0 0 10px rgba(124,58,237,0.9);
+        }
+
+        [data-testid="stDataFrame"] { border-radius: 12px; overflow: hidden; }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+
 # ───────────────────────── data helpers ─────────────────────────
 @st.cache_data(ttl=300)
 def load_history_local(limit: int = 1500) -> pd.DataFrame:
@@ -105,24 +284,67 @@ def local_predict():
     return out
 
 
+# ───────────────────────── UI helpers ─────────────────────────
+def _delta_kind(v: float):
+    if v > 0:
+        return "up", "▲"
+    if v < 0:
+        return "down", "▼"
+    return "neutral", "•"
+
+
+def metric_card(label: str, value: str, delta: str | None = None, kind: str = "neutral") -> str:
+    delta_html = ""
+    if delta is not None:
+        delta_html = f'<div class="metric-delta {kind}">{delta}</div>'
+    return f"""
+    <div class="metric-card">
+        <div class="metric-label">{label}</div>
+        <div class="metric-value">{value}</div>
+        {delta_html}
+    </div>
+    """
+
+
+def section_title(text: str) -> str:
+    return f'<div class="section-title"><span class="dot"></span>{text}</div>'
+
+
 # ───────────────────────── UI ─────────────────────────
-st.title("📊 Sensex Quant Lab")
-st.caption("Next-session Open & Close forecasting · causal features · time-series CV · production artifacts")
+st.markdown(
+    """
+    <div class="sql-hero">
+        <h1>📊 Sensex Quant Lab</h1>
+        <p>Next-session Open &amp; Close forecasting · causal features · time-series CV · production artifacts</p>
+        <div class="badges">
+            <span class="sql-badge">FastAPI Backend</span>
+            <span class="sql-badge">Streamlit Frontend</span>
+            <span class="sql-badge">TimeSeriesSplit</span>
+            <span class="sql-badge">Daily Retrain</span>
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 with st.sidebar:
     st.header("Controls")
-    use_api = st.toggle("Use Render API", value=bool(API), help="If off, uses local artifacts/")
+    use_api = st.toggle("Use Live API", value=bool(API), help="If off, uses local artifacts.")
     lookback = st.slider("Chart lookback (days)", 60, 1500, 400, 20)
     st.markdown("---")
     st.subheader("Deployment")
-    st.code(f"API = {API or '(local artifacts)'}", language="text")
+    mode_label = "🌐 Live API" if (use_api and API) else "💾 Local artifacts"
+    st.markdown(f'<span class="sql-badge">{mode_label}</span>', unsafe_allow_html=True)
     st.markdown(
         """
-        **Stack**
-        - Backend: FastAPI on Render  
-        - Frontend: this Streamlit app  
-        - Daily train: GitHub Actions → commit artifacts  
-        """
+        <div style="color:#94a3b8; font-size:0.82rem; line-height:1.55; margin-top:0.75rem;">
+            <b style="color:#c7d2fe;">Stack</b><br>
+            • Backend: FastAPI<br>
+            • Frontend: Streamlit<br>
+            • Daily train: GitHub Actions → commit artifacts
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
 # Prediction panel
@@ -142,21 +364,51 @@ if pred is None:
     st.error("No prediction available. Train models first: `python services/training_service/main.py --mode smoke`")
     st.stop()
 
-c1, c2, c3, c4, c5 = st.columns(5)
-c1.metric("As of", pred.get("as_of", "—"))
-c2.metric("Last Close", f"{pred['last_close']:,.2f}")
-c3.metric(
-    "Predicted Open",
-    f"{pred.get('predicted_open', 0):,.2f}",
-    delta=f"{pred.get('open_return', 0)*100:.3f}%",
-)
-c4.metric(
-    "Predicted Close",
-    f"{pred.get('predicted_close', 0):,.2f}",
-    delta=f"{pred.get('close_return', 0)*100:.3f}%",
-)
+or_kind, or_arrow = _delta_kind(pred.get("open_return", 0.0))
+cr_kind, cr_arrow = _delta_kind(pred.get("close_return", 0.0))
 models_txt = pred.get("models") or {}
-c5.metric("Models", f"{models_txt.get('open_return', '?')} / {models_txt.get('close_return', '?')}")
+
+c1, c2, c3, c4, c5 = st.columns(5)
+with c1:
+    st.markdown(
+        metric_card("As of", str(pred.get("as_of", "—"))),
+        unsafe_allow_html=True,
+    )
+with c2:
+    st.markdown(
+        metric_card("Last Close", f"{pred['last_close']:,.2f}"),
+        unsafe_allow_html=True,
+    )
+with c3:
+    st.markdown(
+        metric_card(
+            "Predicted Open",
+            f"{pred.get('predicted_open', 0):,.2f}",
+            f"{or_arrow} {pred.get('open_return', 0) * 100:.3f}%",
+            or_kind,
+        ),
+        unsafe_allow_html=True,
+    )
+with c4:
+    st.markdown(
+        metric_card(
+            "Predicted Close",
+            f"{pred.get('predicted_close', 0):,.2f}",
+            f"{cr_arrow} {pred.get('close_return', 0) * 100:.3f}%",
+            cr_kind,
+        ),
+        unsafe_allow_html=True,
+    )
+with c5:
+    st.markdown(
+        metric_card(
+            "Models",
+            f"{models_txt.get('open_return', '?')} / {models_txt.get('close_return', '?')}",
+        ),
+        unsafe_allow_html=True,
+    )
+
+st.markdown("<div style='height:1rem;'></div>", unsafe_allow_html=True)
 
 # Tabs
 tab_price, tab_3d, tab_vol, tab_lb, tab_math = st.tabs(
