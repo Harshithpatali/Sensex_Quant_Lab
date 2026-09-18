@@ -1,0 +1,16 @@
+# Render Blueprint — deploy Prediction API
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: sensex-prediction-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn services.api_service.app:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHONPATH
+        value: shared
+      - key: APP_ROOT
+        value: .
+    healthCheckPath: /health
