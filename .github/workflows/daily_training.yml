@@ -12,17 +12,10 @@ concurrency:
 jobs:
   train:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          persist-credentials: true
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
@@ -32,7 +25,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Download data + train
+      - name: Train
         env:
           N_JOBS: "1"
           PYTHONPATH: ${{ github.workspace }}/shared
@@ -40,39 +33,39 @@ jobs:
           python scripts/update_data.py || true
           python services/training_service/main.py --mode daily --splits 3 --max-models 5
 
-      - name: Commit and push with retries
-        run: |
-          set -e
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-artifacts
+          path: |
+            artifacts/
+            data/
+          retention-days: 3
+          if-no-files-found: error
 
-          git add artifacts/ data/ || true
+  commit:
+    needs: train
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout latest main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+          persist-credentials: true
 
-          if git diff --staged --quiet; then
-            echo "No artifact changes to commit"
-            exit 0
-          fi
+      - name: Download trained files
+        uses: actions/download-artifact@v4
+        with:
+          name: model-artifacts
+          path: ./
 
-          git commit -m "chore: daily model update $(date -u +%Y-%m-%d)"
-
-          # Retry: rebase onto latest main, then push
-          for i in 1 2 3 4 5 6; do
-            echo "Push attempt $i..."
-            git fetch origin main
-            if git rebase origin/main; then
-              if git push origin HEAD:main; then
-                echo "Push succeeded"
-                exit 0
-              fi
-            else
-              echo "Rebase conflict — abort and retry"
-              git rebase --abort || true
-              git reset --soft origin/main
-              git add artifacts/ data/ || true
-              git commit -m "chore: daily model update $(date -u +%Y-%m-%d)" || true
-            fi
-            sleep 10
-          done
-
-          echo "All push attempts failed"
-          exit 1
+      - name: Commit and push
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: daily model update"
+          file_pattern: "artifacts/* data/*"
+          commit_user_name: github-actions[bot]
+          commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com
