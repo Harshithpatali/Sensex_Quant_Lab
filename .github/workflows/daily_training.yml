@@ -2,7 +2,6 @@ name: Daily Sensex Training
 
 on:
   schedule:
-    # 10:45 UTC = 16:15 IST, Mon–Fri
     - cron: "45 10 * * 1-5"
   workflow_dispatch:
 
@@ -12,9 +11,14 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/setup-python@v5
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
@@ -24,28 +28,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Download latest data + train (daily profile)
+      - name: Download data + train
         env:
-          N_JOBS: "2"
+          N_JOBS: "1"
           PYTHONPATH: ${{ github.workspace }}/shared
         run: |
           python scripts/update_data.py || true
-          python services/training_service/main.py --mode daily --splits 3
+          python services/training_service/main.py --mode daily --splits 3 --max-models 5
 
-      - name: Commit artifacts
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          git fetch origin main
-          git pull --rebase origin main || true
-
-          git add data/ artifacts/ || true
-
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "chore: daily model update $(date -u +%Y-%m-%d)"
-            git pull --rebase origin main
-            git push origin main
-          fi
+      - name: Commit and push artifacts
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: daily model update"
+          file_pattern: "artifacts/* data/*"
+          commit_user_name: github-actions[bot]
+          commit_user_email: github-actions[bot]@users.noreply.github.com
