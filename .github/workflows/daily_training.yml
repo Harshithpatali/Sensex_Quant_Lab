@@ -1,66 +1,113 @@
-  name: Daily training
+name: Daily Sensex Training
 
-  on:
-    schedule:
-      - cron: "0 0 * * *"
-    workflow_dispatch:
+on:
+  schedule:
+    - cron: "45 10 * * 1-5"
+  workflow_dispatch:
 
-  jobs:
-    commit:
-      runs-on: ubuntu-latest
+concurrency:
+  group: daily-sensex-training
+  cancel-in-progress: false
 
-      permissions:
-        contents: write
-        pull-requests: write
+jobs:
+  train:
+    runs-on: ubuntu-latest
 
-      steps:
-        - name: Checkout latest main
-          uses: actions/checkout@v4
-          with:
-            ref: main
-            fetch-depth: 0
-            persist-credentials: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-        - name: Download trained artifacts
-          uses: actions/download-artifact@v4
-          with:
-            name: model-artifacts
-            path: ./
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
 
-        - name: Configure Git
-          run: |
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-        - name: Create training branch
-          id: branch
-          run: |
-            BRANCH="daily-training-${GITHUB_RUN_ID}"
-            git switch -c "$BRANCH"
-            echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+      - name: Train model
+        env:
+          N_JOBS: "1"
+          PYTHONPATH: ${{ github.workspace }}/shared
+        run: |
+          python scripts/update_data.py || true
+          python services/training_service/main.py --mode daily --splits 3 --max-models 5
 
-        - name: Commit artifacts
-          run: |
-            git add artifacts/ data/
+      - name: Upload trained artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-artifacts
+          path: |
+            artifacts/
+            data/
+          retention-days: 3
+          if-no-files-found: error
 
-            if git diff --cached --quiet; then
-              echo "No artifact changes."
-              exit 0
-            fi
+  commit:
+    needs: train
+    runs-on: ubuntu-latest
 
-            git commit \
-              -m "chore: daily model update $(date -u +%Y-%m-%d)"
+    permissions:
+      contents: write
+      pull-requests: write
 
-        - name: Push training branch
-          run: |
-            git push origin "${{ steps.branch.outputs.branch }}"
+    steps:
+      - name: Checkout latest main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: true
 
-        - name: Create Pull Request
-          env:
-            GH_TOKEN: ${{ github.token }}
-          run: |
-            gh pr create \
-              --base main \
-              --head "${{ steps.branch.outputs.branch }}" \
-              --title "chore: daily model update $(date -u +%Y-%m-%d)" \
-              --body "Automated daily Sensex model/data artifact update from GitHub Actions."
+      - name: Download trained artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: model-artifacts
+          path: ./
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Create training branch
+        id: branch
+        run: |
+          BRANCH="daily-training-${GITHUB_RUN_ID}"
+          git switch -c "${BRANCH}"
+          echo "branch=${BRANCH}" >> "${GITHUB_OUTPUT}"
+
+      - name: Commit artifacts
+        id: commit
+        run: |
+          git add artifacts/ data/
+
+          if git diff --cached --quiet; then
+            echo "No artifact changes."
+            echo "changed=false" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          git commit -m "chore: daily model update $(date -u +%Y-%m-%d)"
+          echo "changed=true" >> "${GITHUB_OUTPUT}"
+
+      - name: Push training branch
+        if: steps.commit.outputs.changed == 'true'
+        run: |
+          git push origin "${{ steps.branch.outputs.branch }}"
+
+      - name: Create Pull Request
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr create \
+            --base main \
+            --head "${{ steps.branch.outputs.branch }}" \
+            --title "chore: daily model update $(date -u +%Y-%m-%d)" \
+            --body "Automated daily Sensex model/data artifact update from GitHub Actions."
