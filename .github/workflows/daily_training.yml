@@ -1,63 +1,10 @@
-name: Daily Sensex Training
-
-on:
-  schedule:
-    - cron: "45 10 * * 1-5"
-  workflow_dispatch:
-
-# Prevent two daily-training workflows from trying to update main at once.
-concurrency:
-  group: daily-training
-  cancel-in-progress: false
-
-jobs:
-  train:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Download data + train
-        env:
-          N_JOBS: "1"
-          PYTHONPATH: ${{ github.workspace }}/shared
-        run: |
-          python scripts/update_data.py || true
-          python services/training_service/main.py \
-            --mode daily \
-            --splits 3 \
-            --max-models 5
-
-      - name: Upload trained artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: model-artifacts
-          path: |
-            artifacts/
-            data/
-          retention-days: 3
-          if-no-files-found: error
-
   commit:
     needs: train
     runs-on: ubuntu-latest
 
     permissions:
       contents: write
+      pull-requests: write
 
     steps:
       - name: Checkout latest main
@@ -73,52 +20,40 @@ jobs:
           name: model-artifacts
           path: ./
 
-      - name: Configure git
+      - name: Configure Git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Synchronize with latest main
+      - name: Create training branch
+        id: branch
         run: |
-          git fetch origin main
-          git checkout main
-          git reset --hard origin/main
+          BRANCH="daily-training-${GITHUB_RUN_ID}"
+          git switch -c "$BRANCH"
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
 
-      - name: Commit and push artifacts
-        shell: bash
+      - name: Commit artifacts
         run: |
-          set -euo pipefail
-
           git add artifacts/ data/
 
           if git diff --cached --quiet; then
-            echo "No artifact changes to commit."
+            echo "No artifact changes."
             exit 0
           fi
 
-          git commit -m "chore: daily model update $(date -u +%Y-%m-%d)"
+          git commit \
+            -m "chore: daily model update $(date -u +%Y-%m-%d)"
 
-          for attempt in 1 2 3 4 5; do
-            echo "Push attempt ${attempt}/5"
+      - name: Push training branch
+        run: |
+          git push origin "${{ steps.branch.outputs.branch }}"
 
-            if git push origin HEAD:main; then
-              echo "Push succeeded."
-              exit 0
-            fi
-
-            echo "main changed while pushing. Refreshing remote history..."
-
-            git fetch origin main
-
-            # Rebase our artifact commit onto the newest main.
-            git rebase origin/main || {
-              echo "Rebase conflict detected."
-              git rebase --abort || true
-              exit 1
-            }
-
-            sleep 5
-          done
-
-          echo "Unable to push after 5 attempts."
-          exit 1
+      - name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr create \
+            --base main \
+            --head "${{ steps.branch.outputs.branch }}" \
+            --title "chore: daily model update $(date -u +%Y-%m-%d)" \
+            --body "Automated daily Sensex model/data artifact update from GitHub Actions."
