@@ -1,59 +1,66 @@
-  commit:
-    needs: train
-    runs-on: ubuntu-latest
+  name: Daily training
 
-    permissions:
-      contents: write
-      pull-requests: write
+  on:
+    schedule:
+      - cron: "0 0 * * *"
+    workflow_dispatch:
 
-    steps:
-      - name: Checkout latest main
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
-          persist-credentials: true
+  jobs:
+    commit:
+      runs-on: ubuntu-latest
 
-      - name: Download trained artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: model-artifacts
-          path: ./
+      permissions:
+        contents: write
+        pull-requests: write
 
-      - name: Configure Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      steps:
+        - name: Checkout latest main
+          uses: actions/checkout@v4
+          with:
+            ref: main
+            fetch-depth: 0
+            persist-credentials: true
 
-      - name: Create training branch
-        id: branch
-        run: |
-          BRANCH="daily-training-${GITHUB_RUN_ID}"
-          git switch -c "$BRANCH"
-          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+        - name: Download trained artifacts
+          uses: actions/download-artifact@v4
+          with:
+            name: model-artifacts
+            path: ./
 
-      - name: Commit artifacts
-        run: |
-          git add artifacts/ data/
+        - name: Configure Git
+          run: |
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          if git diff --cached --quiet; then
-            echo "No artifact changes."
-            exit 0
-          fi
+        - name: Create training branch
+          id: branch
+          run: |
+            BRANCH="daily-training-${GITHUB_RUN_ID}"
+            git switch -c "$BRANCH"
+            echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
 
-          git commit \
-            -m "chore: daily model update $(date -u +%Y-%m-%d)"
+        - name: Commit artifacts
+          run: |
+            git add artifacts/ data/
 
-      - name: Push training branch
-        run: |
-          git push origin "${{ steps.branch.outputs.branch }}"
+            if git diff --cached --quiet; then
+              echo "No artifact changes."
+              exit 0
+            fi
 
-      - name: Create Pull Request
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh pr create \
-            --base main \
-            --head "${{ steps.branch.outputs.branch }}" \
-            --title "chore: daily model update $(date -u +%Y-%m-%d)" \
-            --body "Automated daily Sensex model/data artifact update from GitHub Actions."
+            git commit \
+              -m "chore: daily model update $(date -u +%Y-%m-%d)"
+
+        - name: Push training branch
+          run: |
+            git push origin "${{ steps.branch.outputs.branch }}"
+
+        - name: Create Pull Request
+          env:
+            GH_TOKEN: ${{ github.token }}
+          run: |
+            gh pr create \
+              --base main \
+              --head "${{ steps.branch.outputs.branch }}" \
+              --title "chore: daily model update $(date -u +%Y-%m-%d)" \
+              --body "Automated daily Sensex model/data artifact update from GitHub Actions."
