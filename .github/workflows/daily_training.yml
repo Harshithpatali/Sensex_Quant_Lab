@@ -2,7 +2,8 @@ name: Daily Sensex Training
 
 on:
   schedule:
-    - cron: "45 10 * * 1-5"
+    - cron: "30 18 * * 1-5"
+      timezone: "Asia/Kolkata"
   workflow_dispatch:
 
 concurrency:
@@ -101,13 +102,15 @@ jobs:
         run: |
           git push origin "${{ steps.branch.outputs.branch }}"
 
-      - name: Create Pull Request
+      - name: Create and merge Pull Request
         if: steps.commit.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh pr create \
-            --base main \
-            --head "${{ steps.branch.outputs.branch }}" \
-            --title "chore: daily model update $(date -u +%Y-%m-%d)" \
-            --body "Automated daily Sensex model/data artifact update from GitHub Actions."
+          PR_URL=$(gh pr create             --base main             --head "${{ steps.branch.outputs.branch }}"             --title "chore: daily model update $(date -u +%Y-%m-%d)"             --body "Automated daily Sensex model/data artifact update from GitHub Actions.")
+
+          echo "Created PR: $PR_URL"
+
+          gh pr merge "$PR_URL"             --merge             --delete-branch
+
+          echo "Daily model PR merged successfully."
