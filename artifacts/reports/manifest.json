@@ -1,5 +1,5 @@
 {
-  "created_at": "2026-11-19T21:19:32.147695+00:00",
+  "created_at": "2026-11-20T21:06:06.714840+00:00",
   "mode": "daily",
   "cv": {
     "type": "TimeSeriesSplit",
@@ -7,8 +7,8 @@
     "gap": 1
   },
   "holdout_fraction": 0.15,
-  "rows_total": 7236,
-  "rows_train": 6151,
+  "rows_total": 7237,
+  "rows_train": 6152,
   "rows_test": 1085,
   "feature_count": 108,
   "features": [
@@ -141,13 +141,13 @@
           "scaler": "MinMaxScaler()",
           "variance__threshold": 0.0
         },
-        "cv_best_MAE": 0.005800872995094342,
+        "cv_best_MAE": 0.005843839988978032,
         "cv_fits": 10,
-        "search_seconds": 12.079731464385986,
-        "MAE": 0.003407211321401918,
-        "RMSE": 0.005584175303884736,
-        "R2": -0.01695085644239147,
-        "DirectionalAccuracy": 0.5990783410138248,
+        "search_seconds": 28.3319308757782,
+        "MAE": 0.0034052848576965958,
+        "RMSE": 0.005583859912551457,
+        "R2": -0.016993512729069016,
+        "DirectionalAccuracy": 0.6009216589861751,
         "rank_by_MAE": 1.0
       }
     },
@@ -163,9 +163,9 @@
         "cv_best_MAE": NaN,
         "cv_fits": 1,
         "search_seconds": 0.0,
-        "MAE": 0.005953344204638615,
-        "RMSE": 0.008106046388795647,
-        "R2": -6.023436877944377e-06,
+        "MAE": 0.0059565307608362775,
+        "RMSE": 0.008109939886511996,
+        "R2": -7.214410041811448e-06,
         "DirectionalAccuracy": 0.5308755760368664,
         "rank_by_MAE": 1.0
       }
